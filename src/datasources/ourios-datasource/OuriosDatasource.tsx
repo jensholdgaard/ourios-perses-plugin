@@ -7,6 +7,7 @@ import {
   OuriosQueryResponse,
 } from "./ourios-datasource-types";
 import { OuriosDatasourceEditor } from "./OuriosDatasourceEditor";
+import { describeQueryError } from "./ourios-error";
 
 const createClient: DatasourcePlugin<
   OuriosDatasourceSpec,
@@ -43,8 +44,10 @@ const createClient: DatasourcePlugin<
       });
 
       if (!response.ok) {
+        // RFC0041.1: each auth outcome is a distinct, visible error
+        // carrying the API's own message — never a generic failure.
         throw new Error(
-          `Ourios returned ${response.status}: ${await response.text()}`,
+          describeQueryError(response.status, await response.text()),
         );
       }
       return (await response.json()) as OuriosQueryResponse;

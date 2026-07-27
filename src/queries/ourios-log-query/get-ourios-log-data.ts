@@ -9,6 +9,21 @@ import { OuriosLogQuerySpec } from "./ourios-log-query-types";
 
 const DEFAULT_DATASOURCE = { kind: "OuriosDatasource" };
 
+/**
+ * The OTLP SeverityNumber bands (§3.2: `severity_text`, else the band).
+ * 0 is "unspecified" per the OTel logs data model — a value real sources
+ * emit (RFC0002.21), never to be guessed into a level.
+ */
+export function severityBand(n: number): string {
+  if (n >= 1 && n <= 4) return "trace";
+  if (n >= 5 && n <= 8) return "debug";
+  if (n >= 9 && n <= 12) return "info";
+  if (n >= 13 && n <= 16) return "warn";
+  if (n >= 17 && n <= 20) return "error";
+  if (n >= 21 && n <= 24) return "fatal";
+  return "unspecified";
+}
+
 /** Flatten an OTLP AnyValue to the string labels Perses expects. */
 function anyValue(v?: Record<string, unknown>): string {
   if (!v) return "";
@@ -16,12 +31,13 @@ function anyValue(v?: Record<string, unknown>): string {
   return k === undefined ? "" : String(v[k]);
 }
 
-function labelsOf(rec: OuriosRecord): Record<string, string> {
+export function labelsOf(rec: OuriosRecord): Record<string, string> {
   const out: Record<string, string> = {};
   for (const kv of rec.resource_attributes ?? [])
     out[kv.key] = anyValue(kv.value);
   for (const kv of rec.attributes ?? []) out[kv.key] = anyValue(kv.value);
-  if (rec.severity_text) out["severity"] = rec.severity_text;
+  // §3.2: severity_text when the source set one, else the OTLP band.
+  out["severity"] = rec.severity_text ?? severityBand(rec.severity_number);
   if (rec.scope_name) out["scope.name"] = rec.scope_name;
   if (rec.template_id !== undefined)
     out["template_id"] = String(rec.template_id);
@@ -29,7 +45,7 @@ function labelsOf(rec: OuriosRecord): Record<string, string> {
   return out;
 }
 
-function toLogData(
+export function toLogData(
   records: OuriosRecord[],
   stats?: Record<string, number>,
 ): LogData {
