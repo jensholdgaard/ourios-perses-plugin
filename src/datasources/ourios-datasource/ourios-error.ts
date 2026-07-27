@@ -17,13 +17,13 @@ export interface OuriosApiError {
 export function parseErrorEnvelope(text: string): OuriosApiError | undefined {
   try {
     const parsed: unknown = JSON.parse(text);
-    if (
-      typeof parsed === "object" &&
-      parsed !== null &&
-      "error" in parsed &&
-      typeof (parsed as { error: unknown }).error === "object"
-    ) {
-      return (parsed as { error: OuriosApiError }).error;
+    if (typeof parsed === "object" && parsed !== null && "error" in parsed) {
+      const error = (parsed as { error: unknown }).error;
+      // `typeof null === "object"`: require a real object so the
+      // return type's `undefined`-when-absent contract holds.
+      if (typeof error === "object" && error !== null && !Array.isArray(error)) {
+        return error as OuriosApiError;
+      }
     }
   } catch {
     // Not JSON — fall through to the raw text.

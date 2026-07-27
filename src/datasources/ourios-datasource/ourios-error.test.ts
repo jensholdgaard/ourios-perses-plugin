@@ -25,6 +25,9 @@ describe("parseErrorEnvelope", () => {
   it("returns undefined for non-JSON and non-envelope bodies", () => {
     expect(parseErrorEnvelope("upstream proxy error")).toBeUndefined();
     expect(parseErrorEnvelope(JSON.stringify({ rows: 0 }))).toBeUndefined();
+    // typeof null === "object" must not leak a null through the guard.
+    expect(parseErrorEnvelope(JSON.stringify({ error: null }))).toBeUndefined();
+    expect(parseErrorEnvelope(JSON.stringify({ error: ["x"] }))).toBeUndefined();
   });
 });
 
