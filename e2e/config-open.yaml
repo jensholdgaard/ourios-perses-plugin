@@ -16,3 +16,6 @@ receiver:
 querier:
   enabled: true
   http_addr: "0.0.0.0:4319"
+  # The RFC 0027/0032 MCP surface, for the RFC0041.4 e2e.
+  mcp:
+    enabled: true
