@@ -4,6 +4,10 @@ storage:
   backend: local
   local:
     bucket_root: /data/store
+  # Bare (string-class) promotion — supported by the 0.5.0 minimum
+  # server — so `count by attr.model` groups on a promoted column.
+  promoted_attributes:
+    log: [model]
 receiver:
   enabled: true
   grpc_addr: "0.0.0.0:4317"

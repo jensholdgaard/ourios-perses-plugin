@@ -7,9 +7,12 @@ if (!ingestBase) {
   process.exit(2);
 }
 
-// 2026-07-27T10:00:00Z and +1s, in nanoseconds (decimal strings).
+// 2026-07-27T10:00:00Z, +1s, and one record an hour later (a second
+// bucket(1h) window for the time-series e2e) — nanoseconds as decimal
+// strings.
 const T1 = "1785146400000000000";
 const T2 = "1785146401000000000";
+const T3 = "1785150000000000000";
 
 const payload = {
   resourceLogs: [
@@ -40,6 +43,16 @@ const payload = {
               severityNumber: 0,
               body: { stringValue: "unspecified severity line" },
               attributes: [],
+            },
+            {
+              // The second bucket(1h) window.
+              timeUnixNano: T3,
+              severityNumber: 9,
+              severityText: "INFO",
+              body: { stringValue: "second hour" },
+              attributes: [
+                { key: "model", value: { stringValue: "claude-fable-5" } },
+              ],
             },
           ],
         },
