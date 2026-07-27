@@ -16,7 +16,7 @@ jobs:
   checks:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
@@ -28,10 +28,27 @@ jobs:
       - run: npm run type-check
       - run: npm test
       - run: npm run build
+  # RFC0041.1/.2 container e2e: the plugin's client + mapping against the
+  # released ourios-server image (RFC0041.5 pins this tag as the declared
+  # minimum server version).
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run test:e2e
+        env:
+          OURIOS_IMAGE: ghcr.io/jensholdgaard/ourios:0.5.0
   # The single required-check anchor, mirroring the main repo's ci-success
   # pattern: branch protection and merge gates key off this one name.
   ci-success:
-    needs: [checks]
+    needs: [checks, e2e]
     if: always()
     runs-on: ubuntu-latest
     steps:

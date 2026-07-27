@@ -1,4 +1,3 @@
-import { fetch } from "@perses-dev/core";
 import { DatasourcePlugin } from "@perses-dev/plugin-system";
 import {
   OuriosDatasourceSpec,
@@ -33,7 +32,12 @@ const createClient: DatasourcePlugin<
     ): Promise<OuriosQueryResponse> => {
       // RFC 0016: a POST with the DSL statement as JSON. Every read path is
       // tenant-scoped (RFC 0026), so the tenant header is not optional.
-      const response = await fetch(`${datasourceUrl}/v1/query`, {
+      // Plain global fetch, deliberately NOT @perses-dev/core's wrapper:
+      // that wrapper throws its own UserFriendlyError on non-OK responses
+      // (with the raw envelope object as the message — "[object Object]"),
+      // which would dead-code the RFC0041.1 classification below. Found by
+      // the container e2e.
+      const response = await globalThis.fetch(`${datasourceUrl}/v1/query`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

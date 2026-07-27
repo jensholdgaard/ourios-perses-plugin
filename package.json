@@ -10,7 +10,8 @@
     "build:types": "tsc --project tsconfig.build.json",
     "lint": "eslint src --ext .ts,.tsx",
     "test": "cross-env LC_ALL=C TZ=UTC jest",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "test:e2e": "bash e2e/run-e2e.sh"
   },
   "main": "lib/cjs/index.js",
   "module": "lib/index.js",
