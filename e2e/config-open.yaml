@@ -1,0 +1,14 @@
+# RFC0041.1 "open mode" fixture server: no auth section, so the
+# listeners accept any tenant (RFC 0026 open mode).
+storage:
+  backend: local
+  local:
+    bucket_root: /data/store
+receiver:
+  enabled: true
+  grpc_addr: "0.0.0.0:4317"
+  http_addr: "0.0.0.0:4318"
+  wal_root: /data/wal
+querier:
+  enabled: true
+  http_addr: "0.0.0.0:4319"
