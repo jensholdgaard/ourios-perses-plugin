@@ -76,8 +76,23 @@ export async function fetchQuerySchema(
       clientInfo: { name: "ourios-perses-plugin", version: "0.1.0" },
     },
   });
-  const session = init.sessionId;
-  await rpc(mcpUrl, session, { method: "notifications/initialized" });
+  if (init.payload?.error) {
+    throw new Error(
+      `MCP initialize failed: ${init.payload.error.message ?? "unknown"}`,
+    );
+  }
+  // Track the session across calls: the server mints it on initialize
+  // and MAY rotate it on any response.
+  let session = init.sessionId;
+  const note = await rpc(mcpUrl, session, {
+    method: "notifications/initialized",
+  });
+  if (note.payload?.error) {
+    throw new Error(
+      `MCP initialized notification rejected: ${note.payload.error.message ?? "unknown"}`,
+    );
+  }
+  session = note.sessionId ?? session;
   const read = await rpc(mcpUrl, session, {
     id: 2,
     method: "resources/read",
@@ -114,5 +129,7 @@ export function suggestionsFromSchema(schema: OuriosQuerySchema): string[] {
   const attrs = (schema.promoted_attributes?.log ?? []).map(
     (key) => `attr.${key}`,
   );
-  return [...fields, ...severities, ...resource, ...attrs];
+  // Order-preserving dedup: a doubly-listed key would render duplicate
+  // chips and collide on React's key={token}.
+  return [...new Set([...fields, ...severities, ...resource, ...attrs])];
 }

@@ -8,10 +8,12 @@ import { OuriosDatasource } from "../src/datasources/ourios-datasource";
 import { getOuriosLogData } from "../src/queries/ourios-log-query/get-ourios-log-data";
 import type { OuriosDatasourceClient } from "../src/datasources/ourios-datasource/ourios-datasource-types";
 
-const OPEN_URL = process.env.OPEN_QUERY_URL!;
-const AUTH_URL = process.env.AUTH_QUERY_URL!;
-const GOOD = process.env.E2E_TOKEN_GOOD!;
-const OTHER = process.env.E2E_TOKEN_OTHER!;
+import { requireEnv } from "./env";
+
+const OPEN_URL = requireEnv("OPEN_QUERY_URL");
+const AUTH_URL = requireEnv("AUTH_QUERY_URL");
+const GOOD = requireEnv("E2E_TOKEN_GOOD");
+const OTHER = requireEnv("E2E_TOKEN_OTHER");
 
 const TENANT = "e2e-tenant";
 // The seeded records sit at 2026-07-27T10:00:00Z, +1s, and 11:00:00Z.

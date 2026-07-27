@@ -7,7 +7,9 @@ import {
   suggestionsFromSchema,
 } from "../src/datasources/ourios-datasource/query-schema";
 
-const OPEN_URL = process.env.OPEN_QUERY_URL!;
+import { requireEnv } from "./env";
+
+const OPEN_URL = requireEnv("OPEN_QUERY_URL");
 
 it("derives editor suggestions from the deployment's schema document", async () => {
   const schema = await fetchQuerySchema(OPEN_URL);

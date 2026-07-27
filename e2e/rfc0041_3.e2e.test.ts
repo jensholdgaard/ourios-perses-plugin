@@ -10,7 +10,9 @@ import { OuriosDatasource } from "../src/datasources/ourios-datasource";
 import { getOuriosTimeSeriesData } from "../src/queries/ourios-time-series-query/get-ourios-time-series-data";
 import type { OuriosDatasourceClient } from "../src/datasources/ourios-datasource/ourios-datasource-types";
 
-const OPEN_URL = process.env.OPEN_QUERY_URL!;
+import { requireEnv } from "./env";
+
+const OPEN_URL = requireEnv("OPEN_QUERY_URL");
 const TENANT = "e2e-tenant";
 const START = new Date("2026-07-27T09:00:00.000Z");
 const END = new Date("2026-07-27T12:00:00.000Z");
