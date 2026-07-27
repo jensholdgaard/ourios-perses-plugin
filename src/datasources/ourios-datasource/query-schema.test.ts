@@ -65,6 +65,14 @@ describe("suggestionsFromSchema (RFC0041.4 derivation)", () => {
     ]);
   });
 
+  it("deduplicates tokens preserving order", () => {
+    const schema: OuriosQuerySchema = {
+      fields: [{ name: "body", type: "string" }],
+      promoted_attributes: { resource: [], log: ["model", "model"] },
+    };
+    expect(suggestionsFromSchema(schema)).toEqual(["body", "attr.model"]);
+  });
+
   it("degrades to empty on an empty document", () => {
     expect(suggestionsFromSchema({})).toEqual([]);
   });

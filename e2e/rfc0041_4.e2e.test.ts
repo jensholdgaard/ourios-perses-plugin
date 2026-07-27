@@ -7,7 +7,16 @@ import {
   suggestionsFromSchema,
 } from "../src/datasources/ourios-datasource/query-schema";
 
-const OPEN_URL = process.env.OPEN_QUERY_URL!;
+/** A clear failure when the e2e harness didn't provide its env. */
+function requireEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) {
+    throw new Error(`${name} is not set — run this suite via e2e/run-e2e.sh`);
+  }
+  return value;
+}
+
+const OPEN_URL = requireEnv("OPEN_QUERY_URL");
 
 it("derives editor suggestions from the deployment's schema document", async () => {
   const schema = await fetchQuerySchema(OPEN_URL);
