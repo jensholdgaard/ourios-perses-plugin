@@ -27,7 +27,9 @@ describe("parseErrorEnvelope", () => {
     expect(parseErrorEnvelope(JSON.stringify({ rows: 0 }))).toBeUndefined();
     // typeof null === "object" must not leak a null through the guard.
     expect(parseErrorEnvelope(JSON.stringify({ error: null }))).toBeUndefined();
-    expect(parseErrorEnvelope(JSON.stringify({ error: ["x"] }))).toBeUndefined();
+    expect(
+      parseErrorEnvelope(JSON.stringify({ error: ["x"] })),
+    ).toBeUndefined();
   });
 });
 

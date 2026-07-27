@@ -21,7 +21,11 @@ export function parseErrorEnvelope(text: string): OuriosApiError | undefined {
       const error = (parsed as { error: unknown }).error;
       // `typeof null === "object"`: require a real object so the
       // return type's `undefined`-when-absent contract holds.
-      if (typeof error === "object" && error !== null && !Array.isArray(error)) {
+      if (
+        typeof error === "object" &&
+        error !== null &&
+        !Array.isArray(error)
+      ) {
         return error as OuriosApiError;
       }
     }
