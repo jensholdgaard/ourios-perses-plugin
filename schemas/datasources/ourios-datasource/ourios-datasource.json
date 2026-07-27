@@ -1,0 +1,6 @@
+{
+  "kind": "OuriosDatasource",
+  "spec": {
+    "directUrl": "http://localhost:9090",
+  }
+}
