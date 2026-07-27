@@ -15,14 +15,12 @@ IMAGE="${OURIOS_IMAGE:-ghcr.io/jensholdgaard/ourios:0.5.0}"
 E2E_TOKEN_GOOD="${E2E_TOKEN_GOOD:-e2e-good-token-0123456789abcdef}"
 E2E_TOKEN_OTHER="${E2E_TOKEN_OTHER:-e2e-other-token-0123456789abcdef}"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-WORK="$(mktemp -d)"
 OPEN=ourios-e2e-open
 AUTH=ourios-e2e-auth
 
 cleanup() {
   docker rm -f "$OPEN" "$AUTH" >/dev/null 2>&1 || true
   docker volume rm -f "$OPEN-data" "$AUTH-data" >/dev/null 2>&1 || true
-  rm -rf "$WORK"
 }
 trap cleanup EXIT
 
