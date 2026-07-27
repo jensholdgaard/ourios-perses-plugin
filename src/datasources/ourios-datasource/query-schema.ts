@@ -87,6 +87,11 @@ export async function fetchQuerySchema(
   const note = await rpc(mcpUrl, session, {
     method: "notifications/initialized",
   });
+  if (note.payload?.error) {
+    throw new Error(
+      `MCP initialized notification rejected: ${note.payload.error.message ?? "unknown"}`,
+    );
+  }
   session = note.sessionId ?? session;
   const read = await rpc(mcpUrl, session, {
     id: 2,

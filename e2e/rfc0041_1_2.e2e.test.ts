@@ -8,14 +8,7 @@ import { OuriosDatasource } from "../src/datasources/ourios-datasource";
 import { getOuriosLogData } from "../src/queries/ourios-log-query/get-ourios-log-data";
 import type { OuriosDatasourceClient } from "../src/datasources/ourios-datasource/ourios-datasource-types";
 
-/** A clear failure when the e2e harness didn't provide its env. */
-function requireEnv(name: string): string {
-  const value = process.env[name];
-  if (!value) {
-    throw new Error(`${name} is not set — run this suite via e2e/run-e2e.sh`);
-  }
-  return value;
-}
+import { requireEnv } from "./env";
 
 const OPEN_URL = requireEnv("OPEN_QUERY_URL");
 const AUTH_URL = requireEnv("AUTH_QUERY_URL");
