@@ -25,6 +25,9 @@ export function useQuerySchemaSuggestions(
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const datasourceUrl = client?.options.datasourceUrl;
   useEffect(() => {
+    // A datasource change (including to none) must never show the
+    // previous datasource's tokens: clear first, then fetch.
+    setSuggestions([]);
     if (!datasourceUrl) return;
     let cancelled = false;
     fetchQuerySchema(datasourceUrl)

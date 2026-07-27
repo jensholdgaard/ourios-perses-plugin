@@ -19,7 +19,9 @@ export function parseMcpBody(text: string): unknown {
   const trimmed = text.trim();
   if (trimmed.startsWith("{")) return JSON.parse(trimmed);
   for (const line of trimmed.split("\n")) {
-    if (line.startsWith("data: {")) return JSON.parse(line.slice(6));
+    // SSE allows any amount of whitespace (or none) after `data:`.
+    const match = /^data:\s*(\{.*)$/.exec(line);
+    if (match) return JSON.parse(match[1]!);
   }
   throw new Error(
     `MCP response carried no JSON payload: ${trimmed.slice(0, 120)}`,

@@ -18,6 +18,11 @@ describe("parseMcpBody", () => {
     ).toEqual({ jsonrpc: "2.0", id: 1, result: { ok: true } });
   });
 
+  it("parses SSE data lines with no or extra whitespace after the colon", () => {
+    expect(parseMcpBody('data:{"id":1}\n')).toEqual({ id: 1 });
+    expect(parseMcpBody('data:   {"id":2}\n')).toEqual({ id: 2 });
+  });
+
   it("parses a plain JSON payload", () => {
     expect(parseMcpBody('{"jsonrpc":"2.0","id":2,"result":{}}')).toEqual({
       jsonrpc: "2.0",
