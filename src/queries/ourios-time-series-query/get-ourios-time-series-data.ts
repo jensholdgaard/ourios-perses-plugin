@@ -50,14 +50,18 @@ export function toTimeSeriesData(rows: OuriosAggregateRow[]): TimeSeriesData {
   for (const row of rows) {
     const groupParts = row.key.filter((_, i) => i !== bucket);
     const name = groupParts.length > 0 ? groupParts.join(", ") : "value";
-    let series = byGroup.get(name);
+    // Collision-free identity: a group VALUE may itself contain the
+    // display delimiter (", "), so the map key is the JSON form and
+    // `name` stays purely a label.
+    const identity = JSON.stringify(groupParts);
+    let series = byGroup.get(identity);
     if (series === undefined) {
       const labels: Record<string, string> = {};
       groupParts.forEach((part, i) => {
         labels[`group_${i}`] = part;
       });
       series = { name, values: [], labels };
-      byGroup.set(name, series);
+      byGroup.set(identity, series);
     }
     const timestampMs = Date.parse(row.key[bucket]!);
     series.values.push([

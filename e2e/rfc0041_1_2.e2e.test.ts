@@ -85,12 +85,12 @@ describe("RFC0041.2 — log-panel parity over the wire", () => {
     );
     const entry = result.logs.entries!.find(
       (candidate) => candidate.line === "hello from the e2e fixture",
-    )!;
+    );
     expect(entry).toBeDefined();
-    expect(entry.line).toBe("hello from the e2e fixture");
-    expect(entry.timestamp).toBe(1785146400); // ns -> s
-    expect(entry.labels?.severity).toBe("INFO");
-    expect(entry.labels?.model).toBe("claude-fable-5");
+    expect(entry!.line).toBe("hello from the e2e fixture");
+    expect(entry!.timestamp).toBe(1785146400); // ns -> s
+    expect(entry!.labels?.severity).toBe("INFO");
+    expect(entry!.labels?.model).toBe("claude-fable-5");
     expect(result.logs.metadata?.stats?.bytesExamined).toBeGreaterThan(0);
     expect(result.metadata?.executedQueryString).toContain("range(");
   });

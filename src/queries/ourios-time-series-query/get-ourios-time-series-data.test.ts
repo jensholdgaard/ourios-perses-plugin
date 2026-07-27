@@ -76,6 +76,17 @@ describe("toTimeSeriesData (RFC0041.3)", () => {
     ]);
   });
 
+  it("group values containing the display delimiter stay distinct series", () => {
+    const rows: OuriosAggregateRow[] = [
+      { key: ["a, b", B1], count: 1 },
+      { key: ["a", B1], count: 2 },
+      { key: ["b", B1], count: 3 },
+    ];
+    // ["a, b"] renders the same NAME as ["a","b"] would, but identity
+    // is collision-free, so three one-part groups stay three series.
+    expect(toTimeSeriesData(rows).series).toHaveLength(3);
+  });
+
   it("sorts points by time within a series", () => {
     const rows: OuriosAggregateRow[] = [
       { key: [B2], count: 2 },
