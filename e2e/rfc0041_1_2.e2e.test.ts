@@ -14,9 +14,13 @@ const GOOD = process.env.E2E_TOKEN_GOOD!;
 const OTHER = process.env.E2E_TOKEN_OTHER!;
 
 const TENANT = "e2e-tenant";
-// The seeded records sit at 2026-07-27T10:00:00Z and +1s.
+// The seeded records sit at 2026-07-27T10:00:00Z, +1s, and 11:00:00Z.
+// END is 12:00, NOT 11:00: `range(from, to)` is half-open (RFC 0002
+// §6.2), so a record exactly on `to` is excluded — the 11:00 record
+// vanished from this suite until the window covered it. The rule the
+// §3.2 mapping notes warn plugin authors about, demonstrated live.
 const START = new Date("2026-07-27T09:00:00.000Z");
-const END = new Date("2026-07-27T11:00:00.000Z");
+const END = new Date("2026-07-27T12:00:00.000Z");
 
 function client(url: string, tenant = TENANT): OuriosDatasourceClient {
   return OuriosDatasource.createClient(
@@ -32,7 +36,7 @@ describe("RFC0041.1 — open mode", () => {
     const response = await client(OPEN_URL).query({
       query: `severity >= trace | ${RANGE}`,
     });
-    expect(response.rows).toBe(1); // the INFO record; severity 0 is below trace
+    expect(response.rows).toBe(2); // both INFO records; severity 0 is below trace
   });
 });
 
@@ -42,7 +46,7 @@ describe("RFC0041.1 — enforcement", () => {
       { query: `severity >= trace | ${RANGE}` },
       { authorization: `Bearer ${GOOD}` },
     );
-    expect(response.rows).toBe(1);
+    expect(response.rows).toBe(2);
   });
 
   it("no token surfaces the API's 401 as the missing-credential error", async () => {
@@ -79,8 +83,10 @@ describe("RFC0041.2 — log-panel parity over the wire", () => {
       // implementation touches; the stub carries exactly that slice.
       context as never,
     );
-    expect(result.logs.entries).toHaveLength(1);
-    const entry = result.logs.entries![0]!;
+    const entry = result.logs.entries!.find(
+      (candidate) => candidate.line === "hello from the e2e fixture",
+    )!;
+    expect(entry).toBeDefined();
     expect(entry.line).toBe("hello from the e2e fixture");
     expect(entry.timestamp).toBe(1785146400); // ns -> s
     expect(entry.labels?.severity).toBe("INFO");

@@ -94,6 +94,15 @@
           },
           "name": "OuriosLogQuery"
         }
+      },
+      {
+        "kind": "TimeSeriesQuery",
+        "spec": {
+          "display": {
+            "name": "Ourios Time Series Query"
+          },
+          "name": "OuriosTimeSeriesQuery"
+        }
       }
     ]
   }

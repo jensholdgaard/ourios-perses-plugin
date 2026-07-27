@@ -29,6 +29,13 @@ export interface OuriosRecord {
 export interface OuriosAggregateRow {
   key: string[];
   count: number;
+  /**
+   * The scalar aggregate (`sum`/`min`/`max`/`avg`) for the group.
+   * Absent for the bare `count` family; `null` for an all-NULL group
+   * (RFC0002.18 / RFC 0042 §3.5) — which a chart must render as a gap,
+   * never a zero.
+   */
+  value?: number | null;
 }
 
 /** The shape `POST /v1/query` answers with. */

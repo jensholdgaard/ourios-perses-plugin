@@ -5,6 +5,7 @@ import {
   OuriosRecord,
 } from "../../datasources/ourios-datasource/ourios-datasource-types";
 import { LogQueryPlugin } from "../log-query-plugin-interface";
+import { withRange } from "../dsl-range";
 import { OuriosLogQuerySpec } from "./ourios-log-query-types";
 
 const DEFAULT_DATASOURCE = { kind: "OuriosDatasource" };
@@ -67,20 +68,7 @@ export function toLogData(
   };
 }
 
-/**
- * Perses supplies an absolute range; the DSL takes RFC 3339 bounds, so the
- * panel range becomes a `range(...)` stage. A hand-written range wins, so the
- * editor never lies about what ran.
- */
-export function withRange(dsl: string, start: Date, end: Date): string {
-  if (/\brange\s*\(/.test(dsl)) return dsl;
-  const [head, ...rest] = dsl.split("|");
-  return [
-    head!.trim(),
-    `range(${start.toISOString()}, ${end.toISOString()})`,
-    ...rest.map((s) => s.trim()),
-  ].join(" | ");
-}
+export { withRange } from "../dsl-range";
 
 export const getOuriosLogData: LogQueryPlugin<OuriosLogQuerySpec>["getLogData"] =
   async (spec, context) => {

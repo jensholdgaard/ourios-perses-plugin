@@ -11,6 +11,7 @@ export const assetPrefix = "/plugins/Ourios/";
 const exposedModules: ModuleFederationOptions["exposes"] = [
   { "./OuriosDatasource": "./src/datasources/ourios-datasource" },
   { "./OuriosLogQuery": "./src/queries/ourios-log-query" },
+  { "./OuriosTimeSeriesQuery": "./src/queries/ourios-time-series-query" },
 ];
 
 export default defineConfig({
