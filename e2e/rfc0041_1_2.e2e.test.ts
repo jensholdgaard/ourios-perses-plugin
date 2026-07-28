@@ -33,12 +33,18 @@ function client(url: string, tenant = TENANT): OuriosDatasourceClient {
 
 const RANGE = `range(${START.toISOString()}, ${END.toISOString()})`;
 
+// RFC0002.21 flipped floor semantics between the matrix legs: on the
+// 0.5.0 declared-minimum leg `severity >= trace` EXCLUDES the seeded
+// severity-0 record (2 rows); from 0.6.0 the floor ADMITS it (3 rows).
+// The matrix exists to pin exactly this boundary.
+const TRACE_FLOOR_ROWS = process.env.TYPED_E2E === "1" ? 3 : 2;
+
 describe("RFC0041.1 — open mode", () => {
   it("succeeds with no credential configured", async () => {
     const response = await client(OPEN_URL).query({
       query: `severity >= trace | ${RANGE}`,
     });
-    expect(response.rows).toBe(2); // both INFO records; severity 0 is below trace
+    expect(response.rows).toBe(TRACE_FLOOR_ROWS);
   });
 });
 
@@ -48,7 +54,7 @@ describe("RFC0041.1 — enforcement", () => {
       { query: `severity >= trace | ${RANGE}` },
       { authorization: `Bearer ${GOOD}` },
     );
-    expect(response.rows).toBe(2);
+    expect(response.rows).toBe(TRACE_FLOOR_ROWS);
   });
 
   it("no token surfaces the API's 401 as the missing-credential error", async () => {
