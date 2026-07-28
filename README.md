@@ -36,6 +36,7 @@ Copy the archive into the directory your Perses `config.yaml` names as
     "plugin": {
       "kind": "OuriosDatasource",
       "spec": {
+        "tenant": "my-tenant",
         "proxy": {
           "kind": "HTTPProxy",
           "spec": {
@@ -43,7 +44,6 @@ Copy the archive into the directory your Perses `config.yaml` names as
               { "endpointPattern": "/v1/query", "method": "POST" },
               { "endpointPattern": "/mcp", "method": "POST" }
             ],
-            "headers": { "x-ourios-tenant": "my-tenant" },
             "url": "http://ourios-querier:4319"
           }
         }
@@ -53,8 +53,8 @@ Copy the archive into the directory your Perses `config.yaml` names as
 }
 ```
 
-The Perses server proxies every panel query, attaching the tenant header
-server-side — the browser never handles tenant selection. `/mcp` is
+The Perses server proxies every panel query to the querier, and the
+`tenant` field becomes the `x-ourios-tenant` header on each request. `/mcp` is
 optional: allowing it lights up the query editor's schema suggestions
 (fields, severity bands, and the promoted attributes of that
 deployment). Against a querier with authentication enabled, missing or
