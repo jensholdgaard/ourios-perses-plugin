@@ -1,52 +1,104 @@
 # ourios-perses-plugin
 
-[Perses](https://perses.dev) plugins for [Ourios](https://github.com/jensholdgaard/ourios)
-— the OTLP-native log backend built on Parquet, a Drain-derived template
-miner, and DataFusion.
-
-> **Status: pre-implementation.** This repository is the designated home
-> for the plugins; the design is governed by
-> [RFC 0041](https://jensholdgaard.github.io/ourios/rfcs/0041-dashboard-datasource-plugins.html)
-> in the main repository, where the acceptance criteria live. Code lands
-> once that RFC reaches `specified`.
-
-## What will live here
-
-Three plugins, scaffolded with `percli`:
+[Perses](https://perses.dev) plugins for
+[Ourios](https://github.com/jensholdgaard/ourios): query the Ourios logs
+DSL from Perses dashboards — log panels, tables, and time series
+(including cost/usage charts over typed numeric columns).
 
 | Plugin | Kind | Serves |
 |---|---|---|
-| `OuriosDatasource` | `Datasource` | connection + auth to an Ourios querier |
-| `OuriosLogQuery` | `LogQuery` | the Ourios logs DSL (RFC 0002) — log panels |
-| `OuriosTimeSeriesQuery` | `TimeSeriesQuery` | `count`/`sum`/`avg by bucket(w)` aggregations — time-series panels, including the FinOps spend charts |
+| `OuriosDatasource` | `Datasource` | connection + tenant to an Ourios querier |
+| `OuriosLogQuery` | `LogQuery` | DSL queries returning records — log panels |
+| `OuriosTimeSeriesQuery` | `TimeSeriesQuery` | `count`/`sum`/`min`/`max`/`avg by bucket(w)` — time-series panels |
 
-## The contract
+## Install
 
-The plugins consume Ourios's **stable, versioned query surface** — the
-RFC 0016 HTTP API speaking the RFC 0002 logs DSL — and adapt to a
-deployment's schema at runtime via the RFC 0032 `ourios://query-schema`
-resource (DSL fields, severity bands, promoted attributes, cost tiers).
-Nothing in this repository reaches into Ourios internals; that is what
-makes a separate repository safe.
+Build the plugin archive and drop it into your Perses server's plugin
+archive directory:
 
-Compatibility is enforced, not assumed: CI here runs end-to-end against
-the released `ourios-server` container image from GHCR.
+```sh
+npm install
+npm run build-mf
+percli plugin build          # produces Ourios-<version>.tar.gz
+```
 
-## Why a separate repository
+Copy the archive into the directory your Perses `config.yaml` names as
+`plugin.archive_path`; Perses extracts and loads it on startup.
 
-- The main repository is a `#![deny(unsafe_code)]` Rust workspace with a
-  tuned build/CI identity; this is a TypeScript/React workspace with its
-  own toolchain (rsbuild, CUE schemas, npm) and its own supply-chain
-  posture.
-- Plugin releases track Perses upstream churn on their own cadence, with
-  a declared minimum Ourios server version — neither project's releases
-  hold the other's.
-- Standalone plugin repositories are the Perses and Grafana ecosystem
-  convention.
+## Configure a datasource
 
-The demo dashboard definitions (e.g. the agent FinOps dashboard) are
-Ourios product artifacts and live in the main repository, not here.
+```json
+{
+  "kind": "Datasource",
+  "metadata": { "name": "ourios", "project": "my-project" },
+  "spec": {
+    "default": true,
+    "plugin": {
+      "kind": "OuriosDatasource",
+      "spec": {
+        "proxy": {
+          "kind": "HTTPProxy",
+          "spec": {
+            "allowedEndpoints": [
+              { "endpointPattern": "/v1/query", "method": "POST" },
+              { "endpointPattern": "/mcp", "method": "POST" }
+            ],
+            "headers": { "x-ourios-tenant": "my-tenant" },
+            "url": "http://ourios-querier:4319"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+The Perses server proxies every panel query, attaching the tenant header
+server-side — the browser never handles tenant selection. `/mcp` is
+optional: allowing it lights up the query editor's schema suggestions
+(fields, severity bands, and the promoted attributes of that
+deployment). Against a querier with authentication enabled, missing or
+wrong-tenant credentials surface as distinct errors in the panel.
+
+## Write queries
+
+Panels take a raw DSL statement:
+
+```
+severity >= warn | limit 100                          # a log panel
+body == "api_request" | count by bucket(1h)           # a time series
+sum(attr.cost_usd) by attr.model, bucket(1h)          # one series per model
+```
+
+Behaviour worth knowing:
+
+- The dashboard time range is injected as a `range(...)` stage; a range
+  you write by hand wins. The window is half-open (`from <= t < to`).
+- The `bucket(w)` dimension is detected positionally, so group keys can
+  come in any order.
+- A `null` aggregate (every input in the group was NULL) renders as a
+  gap, never a zero.
+- Series identity is the full group tuple, so a group value containing
+  the display delimiter cannot merge two series.
+
+An example dashboard definition ships in the main repository under
+[`examples/perses/`](https://github.com/jensholdgaard/ourios/tree/main/examples/perses).
+
+## Compatibility
+
+The declared minimum `ourios-server` version is **0.5.0**; CI runs the
+container end-to-end suite against exactly that GHCR image, so a
+contract break fails this repository's gate — not your dashboard.
+
+## Development
+
+```sh
+npm install
+npm test               # unit
+npm run test:e2e       # container e2e (docker required)
+npm run dev            # rsbuild watch
+```
 
 ## License
 
-Apache-2.0, matching the main project.
+Apache-2.0.
