@@ -36,8 +36,11 @@ it("charts count by bucket(1h) with window-start timestamps", async () => {
     context as never,
   );
   expect(data.series).toHaveLength(1);
+  // RFC0002.21: the severity-0 record in the first bucket is excluded
+  // by the floor on the 0.5.0 leg, admitted from 0.6.0.
+  const firstBucket = process.env.TYPED_E2E === "1" ? 2 : 1;
   expect(data.series[0]!.values).toEqual([
-    [Date.parse("2026-07-27T10:00:00Z"), 1],
+    [Date.parse("2026-07-27T10:00:00Z"), firstBucket],
     [Date.parse("2026-07-27T11:00:00Z"), 1],
   ]);
   expect(data.stepMs).toBe(3_600_000);
