@@ -51,6 +51,10 @@ jobs:
           tar xzf "$RUNNER_TEMP/$tarball" -C "$RUNNER_TEMP/perses"
           echo "$RUNNER_TEMP/perses" >> "$GITHUB_PATH"
       - run: npm ci
+      # The same quality gates CI runs — a tag must not publish what a
+      # PR could not merge.
+      - run: npm run lint
+      - run: npm test
       - run: npm run build-mf
       - run: percli plugin build
       - name: Publish the release with the archive
@@ -59,7 +63,10 @@ jobs:
           TAG: ${{ github.ref_name }}
         run: |
           set -euo pipefail
-          archive="$(ls Ourios-*.tar.gz)"
+          shopt -s nullglob
+          archives=(Ourios-*.tar.gz)
+          [ "${#archives[@]}" -eq 1 ] || { echo "::error::expected exactly one archive, found ${#archives[@]}: ${archives[*]}"; exit 1; }
+          archive="${archives[0]}"
           sha256sum "$archive" > "$archive.sha256"
           gh release create "$TAG" "$archive" "$archive.sha256" \
             --title "$TAG" \
