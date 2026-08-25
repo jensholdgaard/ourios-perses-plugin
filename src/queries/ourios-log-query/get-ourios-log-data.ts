@@ -1,5 +1,7 @@
 import { replaceVariables } from "@perses-dev/plugin-system";
 import { LogEntry, LogData } from "@perses-dev/core";
+import { ATTR_OTEL_SCOPE_NAME } from "@opentelemetry/semantic-conventions";
+import { OURIOS_TEMPLATE_ID } from "../../generated/semconv";
 import {
   OuriosDatasourceClient,
   OuriosRecord,
@@ -37,11 +39,19 @@ export function labelsOf(rec: OuriosRecord): Record<string, string> {
   for (const kv of rec.resource_attributes ?? [])
     out[kv.key] = anyValue(kv.value);
   for (const kv of rec.attributes ?? []) out[kv.key] = anyValue(kv.value);
-  // §3.2: severity_text when the source set one, else the OTLP band.
+  // A labels map is an attribute-keyed namespace, so record fields we
+  // derive into it carry their attribute-context names: the scope name
+  // under the spec's non-OTLP mapping key, the template id under the
+  // Ourios registry key. Injected after the attribute loops: these are
+  // the record's own identity, so they win over a producer attribute
+  // squatting on a reserved (otel.* / ourios.*) key. severity and
+  // trace_id stay bare — the label spellings log UIs expect and link
+  // on. §3.2: severity_text when the source set one, else the OTLP
+  // band.
   out["severity"] = rec.severity_text ?? severityBand(rec.severity_number);
-  if (rec.scope_name) out["scope.name"] = rec.scope_name;
+  if (rec.scope_name) out[ATTR_OTEL_SCOPE_NAME] = rec.scope_name;
   if (rec.template_id !== undefined)
-    out["template_id"] = String(rec.template_id);
+    out[OURIOS_TEMPLATE_ID] = String(rec.template_id);
   if (rec.trace_id) out["trace_id"] = rec.trace_id;
   return out;
 }

@@ -78,6 +78,23 @@ describe("labelsOf / toLogData (§3.2 mapping)", () => {
     expect(labels.cost_usd).toBe("0.188796");
   });
 
+  it("derived record fields carry attribute-context label names", () => {
+    const labels = labelsOf(
+      rec({
+        scope_name: "com.anthropic.claude_code.events",
+        template_id: 14,
+        trace_id: "4bf92f3577b34da6a3ce929d0e0e4736",
+      }),
+    );
+    expect(labels["otel.scope.name"]).toBe("com.anthropic.claude_code.events");
+    expect(labels["ourios.template.id"]).toBe("14");
+    // The bare spellings are gone from the attribute namespace...
+    expect(labels["scope.name"]).toBeUndefined();
+    expect(labels["template_id"]).toBeUndefined();
+    // ...while the record-identity keys log UIs link on stay bare.
+    expect(labels["trace_id"]).toBe("4bf92f3577b34da6a3ce929d0e0e4736");
+  });
+
   it("converts nanoseconds to the seconds Perses expects", () => {
     const data = toLogData([rec({ body: { line: "hello" } })]);
     expect(data.entries?.[0]?.timestamp).toBe(1_785_000_000);
