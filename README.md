@@ -13,17 +13,18 @@ DSL from Perses dashboards — log panels, tables, and time series
 
 ## Install
 
-Build the plugin archive and drop it into your Perses server's plugin
-archive directory:
+Download `Ourios-<version>.tar.gz` from the
+[releases](https://github.com/jensholdgaard/ourios-perses-plugin/releases)
+and copy it into the directory your Perses `config.yaml` names as
+`plugin.archive_path`; Perses extracts and loads it on startup.
+
+Or build the archive yourself:
 
 ```sh
 npm install
 npm run build-mf
 percli plugin build          # produces Ourios-<version>.tar.gz
 ```
-
-Copy the archive into the directory your Perses `config.yaml` names as
-`plugin.archive_path`; Perses extracts and loads it on startup.
 
 ## Configure a datasource
 
