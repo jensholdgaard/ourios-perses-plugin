@@ -61,5 +61,5 @@ module.exports = {
     'import/no-duplicates': 'error',
   },
 
-  ignorePatterns: ['**/dist'],
+  ignorePatterns: ["src/generated/", '**/dist'],
 };

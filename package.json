@@ -11,7 +11,8 @@
     "lint": "eslint src --ext .ts,.tsx",
     "test": "cross-env LC_ALL=C TZ=UTC jest",
     "type-check": "tsc --noEmit",
-    "test:e2e": "bash e2e/run-e2e.sh"
+    "test:e2e": "bash e2e/run-e2e.sh",
+    "semconv:generate": "./scripts/semconv-generate.sh"
   },
   "main": "lib/cjs/index.js",
   "module": "lib/index.js",
@@ -105,5 +106,8 @@
         }
       }
     ]
+  },
+  "dependencies": {
+    "@opentelemetry/semantic-conventions": "^1.43.0"
   }
 }
