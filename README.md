@@ -23,7 +23,7 @@ Or build the archive yourself:
 ```sh
 npm install
 npm run build-mf
-percli plugin build          # produces Ourios-<version>.tar.gz
+percli plugin build          # produces the plugin archive (Ourios[-<version>].tar.gz)
 ```
 
 ## Configure a datasource

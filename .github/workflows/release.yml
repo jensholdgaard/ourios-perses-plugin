@@ -64,9 +64,14 @@ jobs:
         run: |
           set -euo pipefail
           shopt -s nullglob
-          archives=(Ourios-*.tar.gz)
+          # percli 0.50.x names the archive Ourios.tar.gz (no version);
+          # match either shape and publish under the versioned name so
+          # release assets stay unambiguous across percli versions.
+          archives=(Ourios*.tar.gz)
           [ "${#archives[@]}" -eq 1 ] || { echo "::error::expected exactly one archive, found ${#archives[@]}: ${archives[*]}"; exit 1; }
-          archive="${archives[0]}"
+          version="$(node -p "require('./package.json').version")"
+          archive="Ourios-$version.tar.gz"
+          [ "${archives[0]}" = "$archive" ] || mv -- "${archives[0]}" "$archive"
           sha256sum "$archive" > "$archive.sha256"
           gh release create "$TAG" "$archive" "$archive.sha256" \
             --title "$TAG" \
