@@ -1,0 +1,66 @@
+name: release
+
+# Tag-driven: `git tag vX.Y.Z && git push origin vX.Y.Z` builds the
+# Perses plugin archive with percli and publishes it as a GitHub
+# release. The tag must match the package.json version — the archive
+# Perses loads is named Ourios-<package.json version>.tar.gz, and a
+# mismatched tag would publish an archive whose name contradicts it.
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # create the release + upload the archive
+    env:
+      # percli ships inside the perses release tarball; version follows
+      # go.mod's github.com/perses/perses pin. Bump both together.
+      PERSES_VERSION: 0.50.1
+      # sha256 of perses_${PERSES_VERSION}_linux_amd64.tar.gz, from the
+      # release's checksums.txt.
+      PERSES_SHA256: 7d613e29f54668123e2f9d463c07cd592bbdeebc7bec7cf8ae6751fa97841d87
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: 24
+          cache: npm
+      - name: Verify tag matches package.json version
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          pkg="$(node -p "require('./package.json').version")"
+          [ "$TAG" = "v$pkg" ] || { echo "::error::tag $TAG != package.json v$pkg"; exit 1; }
+      - name: Install percli
+        run: |
+          set -euo pipefail
+          tarball="perses_${PERSES_VERSION}_linux_amd64.tar.gz"
+          curl -fsSL -o "$RUNNER_TEMP/$tarball" \
+            "https://github.com/perses/perses/releases/download/v${PERSES_VERSION}/${tarball}"
+          echo "${PERSES_SHA256}  $RUNNER_TEMP/$tarball" | sha256sum -c -
+          mkdir -p "$RUNNER_TEMP/perses"
+          tar xzf "$RUNNER_TEMP/$tarball" -C "$RUNNER_TEMP/perses"
+          echo "$RUNNER_TEMP/perses" >> "$GITHUB_PATH"
+      - run: npm ci
+      - run: npm run build-mf
+      - run: percli plugin build
+      - name: Publish the release with the archive
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          archive="$(ls Ourios-*.tar.gz)"
+          sha256sum "$archive" > "$archive.sha256"
+          gh release create "$TAG" "$archive" "$archive.sha256" \
+            --title "$TAG" \
+            --generate-notes
