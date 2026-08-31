@@ -13,8 +13,26 @@ import (
 #kind: "OuriosDatasource"
 
 kind: #kind
+
+// The fields are spelled out rather than embedding
+// `commonProxy.#baseHTTPDatasourceSpec`, which is a disjunction of two *closed*
+// structs: embedding it leaves no room for `tenant`, and Perses rejects the
+// datasource with "spec.tenant: field not allowed" — including the very
+// example in this plugin's README.
+//
+// Neither is "exactly one of directUrl/proxy" expressed as a disjunction here:
+// with both arms optional CUE cannot pick a branch and fails the resource as an
+// incomplete value. The frontend prefers the proxy when both are set.
 spec: {
-	commonProxy.#baseHTTPDatasourceSpec
+	// tenant is sent as the x-ourios-tenant header on every query (RFC 0026).
+	// Required: the query API is tenant-scoped, so there is no useful default.
+	tenant: string
+
+	// Reach the querier straight from the browser...
+	directUrl?: common.#url
+	// ...or through the Perses server's proxy, which is what a querier bound
+	// to loopback (or behind auth) needs.
+	proxy?: commonProxy.#HTTPProxy
 }
 
 #selector: common.#datasourceSelector & {_kind: #kind}
